@@ -1,0 +1,21 @@
+{
+  "name": "nextjs-blog-post",
+  "displayName": "Next.js Blog Post",
+  "version": "1.0.0",
+  "description": "Writes an SEO blog post for any Next.js site in its own format: target and secondary keywords, your word count, AI images matched to your site's style, and call to action cards placed at random.",
+  "author": {
+    "name": "Brandon",
+    "url": "https://www.youtube.com/@BuildsWithBrandon"
+  },
+  "license": "MIT",
+  "keywords": [
+    "nextjs",
+    "blog",
+    "seo",
+    "markdown",
+    "mdx",
+    "ai-images"
+  ],
+  "homepage": "https://github.com/callmeshades/nextjs-blog-post",
+  "repository": "https://github.com/callmeshades/nextjs-blog-post"
+}

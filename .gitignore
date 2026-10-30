@@ -1,0 +1,14 @@
+.DS_Store
+Thumbs.db
+node_modules/
+*.zip
+
+# Never commit API keys
+.env
+.env.*
+
+# Test images from trying the script inside this repo
+*.webp
+*.png
+*.jpg
+*.jpeg

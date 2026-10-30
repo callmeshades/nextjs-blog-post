@@ -1,0 +1,17 @@
+{
+  "name": "nextjs-blog-post",
+  "description": "Claude Code skill from Builds With Brandon for writing SEO blog posts with AI images on Next.js sites.",
+  "owner": {
+    "name": "Brandon",
+    "url": "https://www.youtube.com/@BuildsWithBrandon"
+  },
+  "plugins": [
+    {
+      "name": "nextjs-blog-post",
+      "source": "./plugins/nextjs-blog-post",
+      "description": "Writes an SEO blog post for any Next.js site in its own format: target and secondary keywords, your word count, AI images matched to your site's style, and call to action cards placed at random.",
+      "category": "web",
+      "tags": ["nextjs", "blog", "seo", "markdown", "ai-images"]
+    }
+  ]
+}
