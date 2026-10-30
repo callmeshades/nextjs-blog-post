@@ -1,7 +1,7 @@
 {
   "name": "nextjs-blog-post",
   "displayName": "Next.js Blog Post",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Writes an SEO blog post for any Next.js site in its own format: target and secondary keywords, your word count, AI images matched to your site's style, and call to action cards placed at random.",
   "author": {
     "name": "Brandon",
