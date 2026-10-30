@@ -11,7 +11,10 @@ Claude does the rest.
 - SEO built in: your target keyword in the title, slug, intro, an H2, the meta description and the hero alt text
 - Your extra keywords worked in where they fit naturally, never stuffed, with a count of each at the end
 - Your word count, hit within 10% (or matched to your existing posts)
-- A hero image and in-post images, realistic or cartoon, or generated from your existing images so they match your site's style
+- A hero image and in-post images, made one of two ways:
+  - **ChatGPT**: realistic or cartoon, or generated from your existing images so they match your site's style
+  - **Claude**: drawn right in your session as SVG illustrations (flat, isometric, line art, geometric or your own description), no API key needed
+  - Either way, the hero and the in-post images can have different styles if you like
 - Your `<CallToAction />` cards placed at random section breaks, never at the top and never next to an image
 - Internal links to your related posts
 - A final check of image paths, frontmatter, keywords and word count
@@ -43,13 +46,17 @@ On Windows, copy it to `%USERPROFILE%\.claude\skills\`.
 
 - A Next.js project with a blog (markdown or MDX)
 - Node.js 18 or newer
-- An OpenAI API key in your project's `.env.local`:
+- For ChatGPT images only, an OpenAI API key in your project's `.env.local`:
 
 ```
 OPENAI_API_KEY=sk-...
 # optional, defaults to gpt-image-2
 IMAGE_MODEL=gpt-image-2
 ```
+
+Claude-drawn images need no key. They're converted to WebP with the `sharp`
+package Next.js already installs (or `rsvg-convert` / ImageMagick if you have
+them).
 
 ## What Claude asks you
 
@@ -63,9 +70,20 @@ First, in chat:
 Then as quick multiple choice:
 
 - Use the keyword as the title and slug, the slug only, or neither
-- Image style: match your existing images, realistic, or cartoon
+- Generate images with ChatGPT or with Claude
 - How many in-post images
 - How many calls to action
+
+And then the image style:
+
+- A style for the hero and, if you want them different, a style for the
+  in-post images
+- ChatGPT styles: match your existing images, realistic, cartoon, or your own
+  description
+- Claude styles: match your existing images, flat vector, isometric, line art,
+  bold geometric, or your own description
+- If your site only has the starter's placeholder images, Claude asks what
+  style you have in mind instead of copying them
 
 ## The CallToAction component
 
@@ -85,9 +103,9 @@ export function useMDXComponents(components) {
 If it's missing or not registered, Claude tells you and asks before changing
 anything.
 
-## The image script
+## The image scripts
 
-`scripts/generate-image.mjs` has no dependencies and works on its own:
+`scripts/generate-image.mjs` (ChatGPT) has no dependencies and works on its own:
 
 ```bash
 node scripts/generate-image.mjs \
@@ -99,6 +117,14 @@ node scripts/generate-image.mjs \
 
 Flags: `--size`, `--quality high|medium|low|auto`, `--format webp|png|jpeg`,
 `--model`, and `--ref` (repeatable).
+
+`scripts/render-svg.mjs` (Claude) converts an SVG to WebP, PNG or JPEG. Run
+it from your project root so it can find `sharp`:
+
+```bash
+node scripts/render-svg.mjs --in hero.svg \
+  --out public/images/blog/thumbnails/my-post.webp --size 1536x864
+```
 
 ---
 

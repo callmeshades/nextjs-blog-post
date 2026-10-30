@@ -7,7 +7,7 @@ This repo is a plugin marketplace, so you can install it with two commands.
 
 | Plugin | What it does |
 |---|---|
-| [`nextjs-blog-post`](plugins/nextjs-blog-post/skills/nextjs-blog-post) | Writes a complete SEO blog post for any Next.js site, in that site's own format. Asks for your target keyword, extra keywords and word count, generates realistic or cartoon images that match your site's style, and drops your call to action cards in at random. |
+| [`nextjs-blog-post`](plugins/nextjs-blog-post/skills/nextjs-blog-post) | Writes a complete SEO blog post for any Next.js site, in that site's own format. Asks for your target keyword, extra keywords and word count, makes images with ChatGPT or has Claude draw them, and drops your call to action cards in at random. |
 
 Pairs with [`nextjs-blog-starter`](https://github.com/callmeshades/nextjs-blog-starter): build the blog with that one, then fill it with this one.
 
@@ -48,8 +48,10 @@ On Windows, copy it to `%USERPROFILE%\.claude\skills\`.
 
 ## Setup
 
-Images are generated with the OpenAI Images API. Add your key to your
-Next.js project's `.env.local` (keep `.env.local` in `.gitignore`):
+You choose how images are made each time: with ChatGPT, or drawn by Claude
+in your session as SVG illustrations (no key needed). For ChatGPT, add your
+OpenAI key to your Next.js project's `.env.local` (keep `.env.local` in
+`.gitignore`):
 
 ```
 OPENAI_API_KEY=sk-...
@@ -66,7 +68,9 @@ IMAGE_MODEL=gpt-image-2
 
 Claude reads your site's posts, then asks for your topic, target keyword,
 extra keywords and word count, whether the keyword should be the title and
-slug, the image style and how many images and calls to action you want. Then
+slug, whether ChatGPT or Claude makes the images, the image style (one for
+the hero and one for the in-post images, if you want them different) and how
+many images and calls to action you want. Then
 it writes the post, generates the images and checks everything. See the
 [skill's README](plugins/nextjs-blog-post/skills/nextjs-blog-post/README.md)
 for the details.

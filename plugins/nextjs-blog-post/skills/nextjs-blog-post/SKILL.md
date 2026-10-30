@@ -1,6 +1,6 @@
 ---
 name: nextjs-blog-post
-description: Write a complete blog post for a Next.js site — markdown/MDX in the site's own format, AI-generated hero and in-post images (realistic or cartoon, matched to the site's existing image style), and the site's CallToAction component placed at random points. Use when asked to write, draft or generate a blog post or article for a Next.js project.
+description: Write a complete blog post for a Next.js site — markdown/MDX in the site's own format, hero and in-post images generated with ChatGPT (realistic or cartoon, matched to the site's existing style) or drawn by Claude as SVG illustrations, with separate hero and in-post styles if wanted, and the site's CallToAction component placed at random points. Use when asked to write, draft or generate a blog post or article for a Next.js project.
 ---
 
 # Next.js Blog Post Generator
@@ -61,10 +61,11 @@ Outcomes:
   - Whether there is text in the images
   - Aspect ratio and file format/size (check with `file`/`identify` or the image dimensions)
 - Also note the site's brand colours from `tailwind.config.*`, `globals.css` CSS variables, or the theme, for use if no images exist yet.
+- **Placeholder check** — decide whether the site has a real image style yet. Treat it as **placeholder-only** when every post image you opened is abstract filler with no subject (gradients, blobs, geometric blocks, solid tiles — what `nextjs-blog-starter` draws for its five starter posts), or when the only posts are the starter's untouched placeholders. A placeholder-only site has no style to match: don't offer "Match existing site images" in Phase 2, and ask for a style instead.
 
 ---
 
-## Phase 2 — Ask the user (two short rounds)
+## Phase 2 — Ask the user (three short rounds)
 
 Skip any question the user already answered in their request.
 
@@ -79,20 +80,41 @@ Ask these together in one message and wait for the reply:
 
 Normalize the reply: trim, lowercase for matching, de-duplicate, and drop any secondary keyword that duplicates the target keyword.
 
-### Round 2 — Structure and images (one AskUserQuestion call, up to 4 questions)
+### Round 2 — Structure and image source (one AskUserQuestion call, up to 4 questions)
 
 1. **Use the target keyword as the title and slug?**
    - `Yes — title and slug both (Recommended)` — the title is the keyword phrase, title-cased, with minimal words added only if needed for it to read naturally; the slug is the keyword exactly, slugified (`deploy-fastapi-to-vps`)
    - `Slug only` — slug is the slugified keyword; write a more compelling title that still contains the keyword
    - `Neither` — write the title and slug freely, keeping the keyword in the title
-2. **Image style**:
-   - `Match existing site images (Recommended)` — only offer when Phase 1c found images; describe the detected style in the option's description
-   - `Realistic` — photographic, natural lighting
-   - `Cartoon` — clean illustrated / cartoon style
+2. **How should the images be generated?**
+   - `ChatGPT (OpenAI image API)` — photorealistic or illustrated images from `gpt-image`, and it can copy the look of existing images. Needs `OPENAI_API_KEY` in the environment or `.env.local`; say in the description whether you found one.
+   - `Claude, in this session` — no API key or extra cost. Claude draws each image by hand as an SVG illustration and converts it to the site's image format. Vector art only (flat, isometric, line art, geometric…), so no photographs and no exact copy of photo-style images.
+   - Put `(Recommended)` on Claude when no `OPENAI_API_KEY` is set, otherwise on ChatGPT.
 3. **How many in-post images** — `2`, `3 (Recommended)`, `4`, `None (hero only)`
 4. **How many CTAs** — `2 (Recommended)`, `1`, `3`. Skip if no CTA component exists.
 
-If the user picks Realistic or Cartoon while the site already has a different style, keep their choice but tell them in one line that it won't match existing posts.
+### Round 3 — Image style (one AskUserQuestion call; the questions depend on the Round 2 image source)
+
+**If ChatGPT** — two questions (only the first if the user chose `None (hero only)`):
+1. **Hero image style** — the style for the post's hero/thumbnail:
+   - `Match existing site images (Recommended)` — only offer when Phase 1c found real images (not placeholder-only); describe the detected style in the option's description
+   - `Realistic` — photographic, natural lighting
+   - `Cartoon` — clean illustrated / cartoon style
+   - Site is **placeholder-only** or has no images → leave out "Match existing", mark `Realistic` as `(Recommended)`, and say in the question that they can pick "Other" to describe the style they have in mind (e.g. "moody film photography", "watercolour").
+2. **In-post image style** — whether the child images inside the post use a different style from the hero:
+   - `Same as the hero (Recommended)` — the whole post looks like one set
+   - The hero options they didn't pick, so they can choose e.g. a realistic hero with cartoon explainers in the body. "Other" lets them describe one.
+
+**If Claude** — two questions (only the first if the user chose `None (hero only)`):
+1. **Hero image style** — the style for the post's hero/thumbnail:
+   - Site has real images → `Match existing site images (Recommended)`, described with the detected style, plus three of the illustration styles below.
+   - Site is **placeholder-only** or has no images → there's no style to match yet, so ask what they have in mind. Offer the four illustration styles below, first one marked `(Recommended)`, and say in the question that they can pick "Other" to describe their own style (e.g. "retro 70s poster, warm oranges").
+   - Illustration styles: `Flat vector` (clean shapes, soft gradients, brand palette) · `Isometric` (3D-looking scenes at a fixed angle) · `Line art` (minimal outlines, one or two accent colours) · `Bold geometric` (abstract shapes and strong colour blocks, poster-like).
+2. **In-post image style** — whether the child images inside the post use a different style from the hero:
+   - `Same as the hero (Recommended)` — the whole post looks like one set
+   - The other illustration styles (up to three), so they can pick e.g. a detailed isometric hero with simple line-art diagrams in the body. "Other" lets them describe one.
+
+Whichever source they chose: build the brand palette from 1c into every style so the images still fit the site. If the user picks a style that differs from real existing images, keep their choice but tell them in one line that it won't match older posts. If they describe a photographic style while Claude is the source, tell them Claude can only draw illustrations and offer to switch to ChatGPT.
 
 ---
 
@@ -120,16 +142,21 @@ Leave image placeholders as HTML comments while drafting, e.g. `<!-- IMAGE: hero
 - **Hero**: represents the whole post. Landscape — use the aspect ratio of existing heroes, else `1536x1024`.
 - **Children**: one per chosen section, each illustrating that section's specific idea (not generic stock filler). Spread them evenly; never two images back to back; never directly above or below a CTA.
 
-### Prompts
+Follow **4A** if the user chose ChatGPT in Round 2, or **4B** if they chose Claude. Then do **Inserting** either way.
+
+### 4A. ChatGPT (OpenAI image API)
+
+#### Prompts
 Write each prompt as: **subject + scene + style block + constraints**.
-- **Style block** — reuse the same block word-for-word for every image in the post so they look like a set:
+- **Style block** — write one for the hero and, if the user chose a different in-post style in Round 3, a second for the children. Reuse each block word-for-word for every image that uses it so they look like a set:
   - Match existing: build it from the 1c style brief (medium, palette, lighting, composition).
   - Realistic: "Photorealistic editorial photograph, natural lighting, shallow depth of field, shot on a 35mm lens, true-to-life colours."
   - Cartoon: "Clean modern cartoon illustration, bold outlines, flat shading with soft gradients, friendly and expressive, cohesive limited palette of [brand colours]."
+  - Custom ("Other"): turn the user's description into a block of the same shape and tell them in one line how you interpreted it.
 - **Constraints** (always): "No text, letters, logos, watermarks or UI screenshots. No real people's faces or recognizable brands/characters."
-- Children images should share the hero's palette and style block so the post feels consistent.
+- Children should share the hero's palette even when their style block differs, so the post feels consistent.
 
-### Generating
+#### Generating
 Use the bundled script (Node 18+, no dependencies). It needs `OPENAI_API_KEY` in the environment or in the project's `.env.local` / `.env`. If neither has it, stop and ask the user to add it — never ask them to paste the key into chat.
 
 ```bash
@@ -148,11 +175,46 @@ node "<skill-dir>/scripts/generate-image.mjs" \
   --out public/images/blog/<slug>/hero.webp
 ```
 
-- Use `--ref` for the hero when "Match existing" was chosen, and use the **new hero** as the `--ref` for the child images so the set is consistent.
+- Use `--ref` for any image whose style is "Match existing", pointing at existing site images.
+- When children use the **same style** as the hero, pass the **new hero** as their `--ref` so the set is consistent. When they use a **different style**, don't ref the hero (it would pull them toward the hero's style) — generate the first child from its style block alone, then pass that first child as `--ref` for the rest.
 - Save to the image folder convention from 1c (default `public/images/blog/<slug>/` when the site has no convention). Name files descriptively: `hero.webp`, `<short-topic>.webp`.
 - Match the existing file format (`--format webp|png|jpeg`); default `webp`.
 - Run independent child-image generations in parallel (separate Bash calls in the same turn).
 - After generating, open each image with `Read` and check it: on-topic, no garbled text, no artifacts, style consistent. Regenerate (max 2 retries each) if not.
+
+### 4B. Claude, in this session (hand-drawn SVG)
+
+You draw every image yourself as SVG code, then convert it to the site's image format. No API key is needed.
+
+#### Style blocks
+Write down one short **style spec** per style the user picked in Round 3 — one for the hero, plus a second for the in-post images if they chose a different style. Each spec fixes: the exact hex palette (brand colours from 1c plus 2–3 neutrals), stroke width and line caps, corner rounding, shading approach (flat, two-tone, linear gradients), background treatment, and level of detail. Apply a spec identically to every image that uses it. When hero and children use different styles, keep the **same palette** across both so the post still hangs together.
+
+Starting points for each style (adapt to the brand palette):
+- **Flat vector** — solid fills, soft linear gradients on large shapes, no outlines or 2px outlines in a dark neutral, rounded corners, a simple scene with one clear subject and a light background shape behind it.
+- **Isometric** — objects drawn on a 30° isometric grid, three tones per surface (top light, left mid, right dark), a floor tile or platform, soft drop shadow.
+- **Line art** — 3–4px uniform strokes with round caps and joins, mostly unfilled, one or two accent colours used for small fills, plenty of empty space.
+- **Bold geometric** — large overlapping circles, rectangles and triangles, strong colour blocking, the subject suggested by shapes rather than drawn literally.
+- **Match existing** — rebuild the 1c style brief as vector rules (palette, outline weight, shading, composition) as closely as SVG allows.
+- **Custom ("Other")** — turn the user's description into the same kind of spec and tell them in one line how you interpreted it.
+
+#### Drawing
+- Set the `viewBox` to the target pixel size: hero at the existing heroes' aspect ratio, else `0 0 1536 864` (16:9); in-post images at `0 0 1200 800` unless existing uploads use another size.
+- Each image must show its subject — the post's main idea for the hero, the section's specific idea for a child — not abstract filler. Use recognizable objects (laptop, server rack, plant, map, chart, tools…) composed into a small scene.
+- Same constraints as 4A: no text or letters, no logos, no real people's likenesses, no recognizable brands or characters. Simple, faceless figures are fine.
+- Keep it self-contained: only `<rect>`, `<circle>`, `<ellipse>`, `<path>`, `<polygon>`, `<line>`, `<g>`, `<defs>` with gradients/clipPaths. No `<text>`, `<image>`, external fonts, CSS imports or filters that renderers may not support (`<feGaussianBlur>` drop shadows are okay with sharp but keep them subtle).
+- Write the SVG source to the session scratchpad (or a temp folder), not into `public/`, e.g. `<scratchpad>/<slug>/hero.svg`.
+
+#### Converting
+```bash
+node "<skill-dir>/scripts/render-svg.mjs" \
+  --in <scratchpad>/<slug>/hero.svg \
+  --out public/images/blog/<slug>/hero.webp \
+  --size 1536x864
+```
+- Run it from the project root: it uses the project's `sharp` (installed with Next.js), then falls back to `rsvg-convert` or ImageMagick.
+- Use the same output paths, file names and format as 4A (`--format webp|png|jpeg`, default from the `--out` extension).
+- If it exits with code 2 (no renderer), tell the user and offer two options: install `sharp` as a dev dependency, or save the `.svg` files under `public/` and reference those directly. Don't install anything without a yes.
+- Open each output with `Read` and check it: subject is clear at thumbnail size, nothing clipped at the edges, palette and style consistent with its spec. Fix the SVG and re-render (max 2 retries each) if not.
 
 ### Inserting
 - Hero → the frontmatter image field from 1a (path relative to `public`, e.g. `/images/blog/<slug>/hero.webp`). If the site shows heroes in the body instead, put it where existing posts do.
@@ -192,4 +254,4 @@ node "<skill-dir>/scripts/generate-image.mjs" \
 - **Word count check** — count the body words, excluding frontmatter, fenced code blocks, image lines and CTA tags (e.g. `awk '/^---$/{f++; next} f>=2' <file> | sed '/^```/,/^```/d' | grep -v -e '^!\[' -e '<CallToAction' | wc -w`). If it's more than 10% off the target, expand or trim sections and recount.
 - **Keyword check** — count the occurrences of the target keyword and of each additional keyword in the final file (case-insensitive, e.g. `grep -oi "<keyword>" <file> | wc -l`). Confirm the target keyword is in the title, first 100 words, an H2 and the meta description. Fix anything missing before reporting.
 
-Finish with a short summary: post file path, title, slug, word count, target keyword placements and count, each additional keyword with its count (and any left out, with the reason), images created (paths), how many CTAs were placed and after which sections, and anything the user should review (e.g. `draft: true`, a CTA that needed the component registered).
+Finish with a short summary: post file path, title, slug, word count, target keyword placements and count, each additional keyword with its count (and any left out, with the reason), images created (paths), how they were generated (ChatGPT or Claude) and in which style(s) for the hero and in-post images, how many CTAs were placed and after which sections, and anything the user should review (e.g. `draft: true`, a CTA that needed the component registered).
